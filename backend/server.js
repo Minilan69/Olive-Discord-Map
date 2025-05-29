@@ -3,6 +3,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 const express = require('express')
 const axios = require('axios')
+const session = require('express-session')
 const app = express()
 const db = require('./database')
 
@@ -14,6 +15,13 @@ if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI) {
   console.error('Missing environment variables: CLIENT_ID, CLIENT_SECRET, or REDIRECT_URI')
   process.exit(1)
 }
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'ultra_secret_key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // Passe à true en prod avec HTTPS
+}))
 
 app.use(express.static(path.join(__dirname, '../frontend')))
 
@@ -46,6 +54,12 @@ app.get('/callback', async (req, res) => {
 
     const user = userRes.data
 
+    // Sauvegarde dans la session
+    req.session.user = {
+      id: user.id,
+      username: user.username
+    }
+
     const approxCoord = (coord, precision = 2) => {
       const factor = Math.pow(10, precision)
       return Math.round(coord * factor) / factor
@@ -65,8 +79,7 @@ app.get('/callback', async (req, res) => {
           res.status(500).send('DB error')
         } else {
           console.log('User inserted/updated in DB:', user.username)
-          // ✅ Redirection propre avec paramètres
-          res.redirect(`/?username=${encodeURIComponent(user.username)}&id=${user.id}`)
+          res.redirect('/')
         }
       }
     )
@@ -74,6 +87,15 @@ app.get('/callback', async (req, res) => {
   } catch (err) {
     console.error(err.response?.data || err)
     res.status(500).send('Error during authentication')
+  }
+})
+
+// Route pour savoir si l'utilisateur est connecté
+app.get('/me', (req, res) => {
+  if (req.session.user) {
+    res.json({ loggedIn: true, username: req.session.user.username })
+  } else {
+    res.json({ loggedIn: false })
   }
 })
 

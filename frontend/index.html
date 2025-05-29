@@ -18,15 +18,17 @@
   </footer>
 
   <script>
-    const params = new URLSearchParams(window.location.search)
-    const username = params.get('username')
+    fetch('/me')
+    .then(res => res.json())
+    .then(data => {
+        const container = document.getElementById('auth-button')
+        if (data.loggedIn) {
+        container.innerHTML = `<button disabled>Connecté en tant que ${data.username}</button>`
+        } else {
+        container.innerHTML = `<button onclick="window.location.href='/login'">Connexion avec discord</button>`
+        }
+    })
+</script>
 
-    const container = document.getElementById('auth-button')
-    if (username) {
-      container.innerHTML = `<button disabled>Connecté en tant que ${username}</button>`
-    } else {
-      container.innerHTML = `<button onclick="window.location.href='/login'">Connexion avec discord</button>`
-    }
-  </script>
 </body>
 </html>
