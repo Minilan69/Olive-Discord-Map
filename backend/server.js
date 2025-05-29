@@ -20,7 +20,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'ultra_secret_key',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // Passe à true en prod avec HTTPS
+  cookie: { secure: false } // Set to true if we using HTTPS
 }))
 
 app.use(express.static(path.join(__dirname, '../frontend')))
@@ -54,7 +54,7 @@ app.get('/callback', async (req, res) => {
 
     const user = userRes.data
 
-    // Sauvegarde dans la session
+    // Store user in session
     req.session.user = {
       id: user.id,
       username: user.username
@@ -90,7 +90,17 @@ app.get('/callback', async (req, res) => {
   }
 })
 
-// Route pour savoir si l'utilisateur est connecté
+app.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Session destruction error', err)
+    }
+    res.redirect('/')
+  })
+})
+
+
+// Road to check if user is logged in
 app.get('/me', (req, res) => {
   if (req.session.user) {
     res.json({ loggedIn: true, username: req.session.user.username })
