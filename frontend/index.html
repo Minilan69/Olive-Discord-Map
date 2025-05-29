@@ -1,19 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olive Discord Map</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carte Discord</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Olive Discord Map</h1>
-        <p>Welcome to the Olive Discord Map! This is a simple web application that allows you to view and interact with a map of Discord servers.</p>
-        <button onclick="window.location.href='/login'">Login with Discord</button>
-    </div>
-    <footer class="bg-gray-800 text-center text-sm p-2">
-    © 2025 Minilan/Okiles - Open Source Project
-    </footer>
+  <div class="container">
+    <h1>Carte Du Discord De Maman Olive</h1>
+    <p>Bienvenue sur la carte interactive du server de maman olive !</p>
+    <div id="auth-button"></div>
+  </div>
+
+  <footer class="bg-gray-800 text-center text-sm p-2">
+    © 2025 Minilan/Okiles - <a href="https://github.com/Minilan69/Olive-Discord-Map"> Projet Open Source </a>
+  </footer>
+
+  <script>
+    const params = new URLSearchParams(window.location.search)
+    const username = params.get('username')
+
+    const container = document.getElementById('auth-button')
+    if (username) {
+      container.innerHTML = `<button disabled>Connecté en tant que ${username}</button>`
+    } else {
+      container.innerHTML = `<button onclick="window.location.href='/login'">Connexion avec discord</button>`
+    }
+  </script>
 </body>
 </html>

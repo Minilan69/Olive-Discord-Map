@@ -4,10 +4,16 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 const express = require('express')
 const axios = require('axios')
 const app = express()
+const db = require('./database')
 
 const CLIENT_ID = process.env.CLIENT_ID
 const CLIENT_SECRET = process.env.CLIENT_SECRET
 const REDIRECT_URI = process.env.REDIRECT_URI
+
+if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI) {
+  console.error('Missing environment variables: CLIENT_ID, CLIENT_SECRET, or REDIRECT_URI')
+  process.exit(1)
+}
 
 app.use(express.static(path.join(__dirname, '../frontend')))
 
@@ -31,6 +37,7 @@ app.get('/callback', async (req, res) => {
     const tokenRes = await axios.post('https://discord.com/api/oauth2/token', data, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     })
+
     const access_token = tokenRes.data.access_token
 
     const userRes = await axios.get('https://discord.com/api/users/@me', {
@@ -38,7 +45,32 @@ app.get('/callback', async (req, res) => {
     })
 
     const user = userRes.data
-    res.send(`Login to ${user.username}`)
+
+    const approxCoord = (coord, precision = 2) => {
+      const factor = Math.pow(10, precision)
+      return Math.round(coord * factor) / factor
+    }
+
+    const userLat = 48.8566
+    const userLon = 2.3522
+    const lat = approxCoord(userLat, 2)
+    const lon = approxCoord(userLon, 2)
+
+    db.run(
+      `INSERT OR REPLACE INTO users (id, username, latitude, longitude) VALUES (?, ?, ?, ?)`,
+      [user.id, user.username, lat, lon],
+      (err) => {
+        if (err) {
+          console.error('Error insert DB', err)
+          res.status(500).send('DB error')
+        } else {
+          console.log('User inserted/updated in DB:', user.username)
+          // ✅ Redirection propre avec paramètres
+          res.redirect(`/?username=${encodeURIComponent(user.username)}&id=${user.id}`)
+        }
+      }
+    )
+
   } catch (err) {
     console.error(err.response?.data || err)
     res.status(500).send('Error during authentication')
