@@ -1,0 +1,25 @@
+{
+  "name": "olive-discord-map",
+  "version": "1.0.0",
+  "description": "A Discord connected web app that lets users place their location pin on a shared interactive map",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Minilan69/Olive-Discord-Map.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Minilan69/Olive-Discord-Map/issues"
+  },
+  "homepage": "https://github.com/Minilan69/Olive-Discord-Map#readme",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
+  }
+}
