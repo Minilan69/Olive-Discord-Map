@@ -211,6 +211,7 @@ app.get('/map', (req, res) => {
 
 
 // Start the server
-app.listen(3000, () => {
-  console.log('Server launch at http://localhost:3000')
+app.listen(3000, '37.59.109.63', () => {
+  console.log('Server launch at http://37.59.109.63:3000')
 })
+
