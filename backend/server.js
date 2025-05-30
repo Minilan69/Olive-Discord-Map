@@ -114,7 +114,7 @@ app.get('/callback', async (req, res) => {
     })
 
   } catch (err) {
-    console.error(err.response?.data || err)
+    console.error((err.response && err.response.data) || err)
     res.status(500).send('Error during authentication')
   }
 })
