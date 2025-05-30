@@ -31,9 +31,18 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')))
 
 // Route to start Discord login via OAuth2
 app.get('/login', (req, res) => {
-  const redirect = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=identify%20guilds`
-  res.redirect(redirect)
+  const redirectTo = req.query.redirect || '/'
+  req.session.redirectTo = redirectTo
+  req.session.save(err => {
+    if (err) {
+      console.error('Session error:', err)
+      return res.redirect('/')
+    }
+    const discordOAuthURL = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=identify%20guilds`
+    res.redirect(discordOAuthURL)
+  })
 })
+
 
 // OAuth2 callback route from Discord
 app.get('/callback', async (req, res) => {
@@ -60,56 +69,49 @@ app.get('/callback', async (req, res) => {
       headers: { Authorization: `Bearer ${access_token}` }
     })
 
-    const user = userRes.data
     const guildsRes = await axios.get('https://discord.com/api/users/@me/guilds', {
       headers: { Authorization: `Bearer ${access_token}` }
     })
+
+    const user = userRes.data
     const guilds = guildsRes.data
 
     const MY_GUILD_ID = '1376474773101744148'
+    const redirectTo = req.session.redirectTo || '/'
 
-    req.session.notInGuild = false
+    // Store user info in session
     req.session.user = {
       id: user.id,
       username: user.username
     }
 
-    if (!guilds.some(guild => guild.id === MY_GUILD_ID)) {
-      // User is not in the guild
-      req.session.notInGuild = true
-      req.session.save(err => {
-        if (err) {
-          console.error('Session save error:', err)
-          return res.status(500).send('Session save error')
-        }
-        // No DB insertion here because user is not in the guild
-        return res.redirect('/')
-      })
-    } else {
-      // User is in the guild
+    // Check if user is in guild
+    const isInGuild = guilds.some(guild => guild.id === MY_GUILD_ID)
+    req.session.notInGuild = !isInGuild
 
-      req.session.save(err => {
-        if (err) {
-          console.error('Session save error:', err)
-          return res.status(500).send('Session save error')
-        }
-        // Insert or update in DB only here
+    // Save session
+    req.session.save(err => {
+      if (err) {
+        console.error('Session save error:', err)
+        return res.status(500).send('Session save error')
+      }
+
+      // If user is in the guild, update DB
+      if (isInGuild) {
         db.run(
           `INSERT INTO users (id, username) VALUES (?, ?)
           ON CONFLICT(id) DO UPDATE SET username = excluded.username`,
           [user.id, user.username],
           (dbErr) => {
-            if (dbErr) {
-              console.error('Error insert DB', dbErr)
-              // DB error can be ignored here since session is already saved
-            } else {
-              console.log('User inserted/updated in DB:', user.username)
-            }
+            if (dbErr) console.error('Error insert DB', dbErr)
+            else console.log('User inserted/updated in DB:', user.username)
           }
         )
-        return res.redirect('/')
-      })
-    }
+      }
+
+      // Redirect
+      return res.redirect(redirectTo)
+    })
 
   } catch (err) {
     console.error(err.response?.data || err)
@@ -117,15 +119,19 @@ app.get('/callback', async (req, res) => {
   }
 })
 
+
 // Route to log out user and destroy session
 app.get('/logout', (req, res) => {
+  const redirectTo = req.query.redirect || '/'
+  req.session.redirectTo = redirectTo
   req.session.destroy((err) => {
     if (err) {
       console.error('Session destruction error', err)
     }
-    res.redirect('/')
+    res.redirect(redirectTo)
   })
 })
+
 
 // Route to get current user info
 app.get('/me', (req, res) => {
@@ -197,6 +203,12 @@ app.post('/delete-point', isAuthenticated, (req, res) => {
     res.json({ success: true })
   })
 })
+
+// Route to go to the map page
+app.get('/map', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend', 'map.html'))
+})
+
 
 // Start the server
 app.listen(3000, () => {

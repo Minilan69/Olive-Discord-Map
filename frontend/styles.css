@@ -1,4 +1,4 @@
-/* Reset */
+/* Reset global */
 * {
   margin: 0;
   padding: 0;
@@ -21,7 +21,7 @@ html, body {
   font-weight: 700;
   font-size: 2.5rem;
   text-align: center;
-  padding: 1rem 1rem 0.25rem 1rem;
+  padding: 1rem 1rem 0.25rem;
   color: #e0e7ff;
   text-shadow: 1px 1px 5px #3b82f6;
 }
@@ -37,15 +37,17 @@ html, body {
 /* USER ACTIONS BUTTONS */
 #user-actions {
   display: flex;
-  justify-content: space-between; /* Espace max entre les boutons */
+  justify-content: flex-start;
   align-items: center;
   padding: 0 1rem;
   margin-bottom: 1.5rem;
-  flex-wrap: nowrap; /* évite que ça se mette en colonne */
+  flex-wrap: nowrap;
+  gap: 10px;
 }
 
+
 #user-actions button {
-  flex: 0 0 auto; /* taille auto selon contenu */
+  flex: 0 0 auto;
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   border: none;
   border-radius: 12px;
@@ -64,16 +66,13 @@ html, body {
   box-shadow: 0 6px 18px rgb(30 64 175 / 0.8);
 }
 
-
-
-
 /* MAP FULL SIZE */
 #map {
   flex-grow: 1;
   width: 100%;
   border-radius: 16px;
   box-shadow: 0 12px 30px rgba(30, 64, 175, 0.4);
-  margin: 0 1rem 1.5rem 1rem;
+  margin: 0 1rem 1.5rem;
   min-height: 60vh;
   max-height: calc(100vh - 250px);
   transition: box-shadow 0.3s ease;
@@ -81,12 +80,14 @@ html, body {
 
 /* FOOTER */
 footer {
-  text-align: center;
-  font-size: 0.85rem;
-  color: #94a3b8;
-  padding: 0.7rem 1rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
   background: #111827;
-  user-select: none;
+  color: white;
+  text-align: center;
+  padding: 1rem;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
@@ -139,7 +140,7 @@ footer {
   box-shadow: 0 10px 30px rgba(30, 64, 175, 0.9);
 }
 
-/* Responsive : la carte s'adapte et boutons passent en colonne sur petits écrans */
+/* Responsive */
 @media (max-width: 600px) {
   .container > h1 {
     font-size: 1.8rem;
@@ -158,7 +159,7 @@ footer {
   }
 
   #map {
-    margin: 0 0.5rem 1rem 0.5rem;
+    margin: 0 0.5rem 1rem;
     min-height: 55vh;
   }
 }

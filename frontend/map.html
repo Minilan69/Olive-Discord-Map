@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carte Discord</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+  <div id="blur-overlay">
+    <p id="blur-message"></p>
+    <div id="login-prompt">
+      <button id="login-btn" onclick="window.location.href='/login?redirect=' + encodeURIComponent(window.location.pathname)">Connexion avec Discord</button>
+    </div>
+  </div>
+
+
+  <div class="container">
+    <h1>Carte Du Discord De Maman Olive</h1>
+    <p>Bienvenue sur la carte interactive du serveur de maman olive !</p>
+    <div id="user-actions" style="display: none; margin-bottom: 10px;">
+      <button id="toggle-position-btn">Activer le mode position</button>
+      <button id="delete-point-btn">Supprimer mon point</button>
+      <button id="homelink" onclick="window.location.href='/'">Accueil</button>
+      <button id="logout-point-btn" onclick="window.location.href='/logout?redirect=' + encodeURIComponent(window.location.pathname)">Se déconnecter</button>
+    </div>
+
+
+    <div id="map" style="height: 600px;"></div> <!-- Map container -->
+  </div>
+
+  <footer class="bg-gray-800 text-center text-sm p-2">
+    © 2025 Minilan/Okiles - <a href="https://github.com/Minilan69/Olive-Discord-Map">Projet Open Source </a>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+let map
+let editMode = false
+let userMarker = null
+let otherMarkers = []
+
+// Icons for user markers with different colors
+const userIcon = L.icon({
+  iconUrl: '/assets/pin-red.png',
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -30],
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  shadowSize: [40, 40]
+})
+const userIcon2 = L.icon({
+  iconUrl: '/assets/pin-black.png',
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -30],
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  shadowSize: [40, 40]
+})
+
+initMap()
+
+// Check if user logged in
+fetch('/me')
+  .then(res => res.json())
+  .then(data => {
+    if (!data.loggedIn) {
+      // Not logged in => blur + message blocking
+      document.getElementById('blur-message').textContent = "Tu dois te connecter pour accéder à la carte"
+      document.getElementById('blur-overlay').classList.remove('hidden')
+      document.getElementById('user-actions').style.display = 'none'
+      return
+    }
+
+    if (data.notInGuild) {
+      // Connected but not in the Discord server => blur + message blocking
+      document.getElementById('blur-message').textContent = "Tu dois être sur le serveur Discord pour accéder à la carte"
+      document.getElementById('blur-overlay').classList.remove('hidden')
+      document.getElementById('user-actions').style.display = 'none'
+      document.getElementById('login-btn').textContent = 'Rejoindre le serveur Discord'
+      document.getElementById('login-btn').onclick = () => { window.location.href = 'https://discord.gg/maman' }
+      return
+    }
+
+    // User is logged in and in the guild
+    document.getElementById('blur-overlay').classList.add('hidden')
+    document.getElementById('logout-point-btn').textContent = 'Déconnexion de ' + data.username
+    document.getElementById('user-actions').style.display = 'block'
+
+    // Points are loaded from the backend
+    fetch('/points')
+      .then(res => res.json())
+      .then(points => {
+        points.forEach(p => {
+          if (p.id === data.id) {
+            userMarker = L.marker([p.latitude, p.longitude], { icon: userIcon}).addTo(map)
+            userMarker.bindPopup(p.username).openPopup()
+            userMarker.on('dragend', () => {
+              const pos = userMarker.getLatLng()
+              updatePoint(pos.lat, pos.lng)
+            })
+            map.setView([p.latitude, p.longitude], 12)
+          } else {
+            const marker = L.marker([p.latitude, p.longitude], { icon: userIcon2}).addTo(map)
+            marker.bindPopup(p.username)
+            otherMarkers.push(marker)
+          }
+        })
+      })
+
+    map.on('click', e => {
+      if (!editMode) return
+      const { lat, lng } = e.latlng
+      if (userMarker) userMarker.setLatLng(e.latlng)
+      else {
+        userMarker = L.marker(e.latlng, { icon: userIcon}).addTo(map)
+        userMarker.bindPopup(data.username).openPopup()
+        userMarker.on('dragend', () => {
+          const pos = userMarker.getLatLng()
+          updatePoint(pos.lat, pos.lng)
+        })
+      }
+      updatePoint(lat, lng)
+    })
+  })
+
+
+// Initialize map with center on Paris and zoom 5
+function initMap() {
+  map = L.map('map', { zoomControl: false, attributionControl: false }).setView([48.8566, 2.3522], 5)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(map)
+}
+
+// Send new position to backend with a small random offset
+function updatePoint(lat, lng) {
+
+  // Add small random offset to lat/lng to hide exact position
+  const offsetLat = (Math.random() - 0.5) * 0.1
+  const offsetLng = (Math.random() - 0.5) * 0.1
+
+  const latFinal = lat + offsetLat
+  const lngFinal = lng + offsetLng
+
+  fetch('/update-point', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ latitude: latFinal, longitude: lngFinal })
+  })
+  .then(res => {
+    if (!res.ok) console.error('Erreur mise à jour position')
+  })
+}
+
+// Button to toggle edit mode
+document.getElementById('toggle-position-btn').addEventListener('click', () => {
+  editMode = !editMode
+
+  // Change button text depending on mode
+  document.getElementById('toggle-position-btn').textContent = editMode
+    ? 'Désactiver le mode position'
+    : 'Activer le mode position'
+
+  if (editMode) {
+    // Remove other users markers in edit mode
+    otherMarkers.forEach(marker => map.removeLayer(marker))
+  } else {
+    // Reload page to refresh markers when edit mode off
+    window.location.reload()
+  }
+})
+
+// Button to delete user point
+document.getElementById('delete-point-btn').addEventListener('click', () => {
+  fetch('/delete-point', {
+    method: 'POST'
+  }).then(res => {
+    if (res.ok) {
+      if (userMarker) {
+        map.removeLayer(userMarker)
+        userMarker = null
+      }
+      alert('Point supprimé')
+    } else {
+      alert('Erreur lors de la suppression')
+    }
+  })
+})
+
+
+  </script>
+</body>
+</html>
