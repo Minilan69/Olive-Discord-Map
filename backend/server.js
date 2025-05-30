@@ -129,8 +129,6 @@ app.get('/logout', (req, res) => {
 
 // Route to get current user info
 app.get('/me', (req, res) => {
-  console.log('Session user:', req.session.user)
-  console.log('Session notInGuild:', req.session.notInGuild)
   if (req.session.user) {
     res.json({
       loggedIn: true,

@@ -11,7 +11,7 @@
   <div id="blur-overlay">
     <p id="blur-message"></p>
     <div id="login-prompt">
-      <button onclick="window.location.href='/login'">Connexion avec Discord</button>
+      <button id="login-btn" onclick="window.location.href='/login'">Connexion avec Discord</button>
     </div>
   </div>
 
@@ -19,7 +19,6 @@
   <div class="container">
     <h1>Carte Du Discord De Maman Olive</h1>
     <p>Bienvenue sur la carte interactive du server de maman olive !</p>
-    <div id="auth-info"></div> <!-- Shows logged in user info -->
     <div id="user-actions" style="display: none; margin-bottom: 10px;">
       <button id="toggle-position-btn">Activer le mode position</button>
       <button id="delete-point-btn">Supprimer mon point</button>
@@ -78,13 +77,14 @@ fetch('/me')
       document.getElementById('blur-message').textContent = "Tu dois être sur le serveur Discord pour accéder à la carte"
       document.getElementById('blur-overlay').classList.remove('hidden')
       document.getElementById('user-actions').style.display = 'none'
-      document.getElementById('auth-info').innerHTML = `<p>Connecté en tant que ${data.username}</p>`
+      document.getElementById('login-btn').textContent = 'Rejoindre le serveur Discord'
+      document.getElementById('login-btn').onclick = () => { window.location.href = 'https://discord.gg/maman' }
       return
     }
 
     // Utilisateur connecté et membre du serveur
     document.getElementById('blur-overlay').classList.add('hidden')
-    document.getElementById('auth-info').innerHTML = `<p>Connecté en tant que ${data.username}</p>`
+    document.getElementById('logout-point-btn').textContent = 'Se déconnecter de ' + data.username
     document.getElementById('user-actions').style.display = 'block'
 
     // Reste de ton code pour afficher les points, etc...
