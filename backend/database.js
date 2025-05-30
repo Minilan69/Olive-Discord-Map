@@ -14,10 +14,10 @@ const db = new sqlite3.Database(dbPath, (err) => {
 db.serialize(() => {
   // Create the users table if it doesn't exist
   db.run(`CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,   // User ID
-    username TEXT,         // Username
-    latitude REAL,         // Latitude
-    longitude REAL         // Longitude
+    id TEXT PRIMARY KEY,
+    username TEXT,  
+    latitude REAL,
+    longitude REAL
   )`, (err) => {
     if (err) {
       console.error('Table creation error', err)

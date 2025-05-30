@@ -31,7 +31,7 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')))
 
 // Route to start Discord login via OAuth2
 app.get('/login', (req, res) => {
-  const redirect = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=identify`
+  const redirect = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=identify%20guilds`
   res.redirect(redirect)
 })
 
@@ -44,7 +44,7 @@ app.get('/callback', async (req, res) => {
     grant_type: 'authorization_code',
     code,
     redirect_uri: REDIRECT_URI,
-    scope: 'identify'
+    scope: 'identify guilds'
   })
 
   try {
@@ -61,27 +61,56 @@ app.get('/callback', async (req, res) => {
     })
 
     const user = userRes.data
+    const guildsRes = await axios.get('https://discord.com/api/users/@me/guilds', {
+      headers: { Authorization: `Bearer ${access_token}` }
+    })
+    const guilds = guildsRes.data
 
-    // Save user info in session
+    const MY_GUILD_ID = '1376474773101744148'
+
+    req.session.notInGuild = false
     req.session.user = {
       id: user.id,
       username: user.username
     }
 
-    // Insert or update user in the database
-    db.run(
-      `INSERT INTO users (id, username) VALUES (?, ?)
-      ON CONFLICT(id) DO UPDATE SET username = excluded.username`,
-      [user.id, user.username],
-      (err) => {
+    if (!guilds.some(guild => guild.id === MY_GUILD_ID)) {
+      // User is not in the guild
+      req.session.notInGuild = true
+      req.session.save(err => {
         if (err) {
-          console.error('Error insert DB', err)
-          return res.status(500).send('DB error')
+          console.error('Session save error:', err)
+          return res.status(500).send('Session save error')
         }
-        console.log('User inserted/updated in DB:', user.username)
-        res.redirect('/')
-      }
-    )
+        // No DB insertion here because user is not in the guild
+        return res.redirect('/')
+      })
+    } else {
+      // User is in the guild
+
+      req.session.save(err => {
+        if (err) {
+          console.error('Session save error:', err)
+          return res.status(500).send('Session save error')
+        }
+        // Insert or update in DB only here
+        db.run(
+          `INSERT INTO users (id, username) VALUES (?, ?)
+          ON CONFLICT(id) DO UPDATE SET username = excluded.username`,
+          [user.id, user.username],
+          (dbErr) => {
+            if (dbErr) {
+              console.error('Error insert DB', dbErr)
+              // DB error can be ignored here since session is already saved
+            } else {
+              console.log('User inserted/updated in DB:', user.username)
+            }
+          }
+        )
+        return res.redirect('/')
+      })
+    }
+
   } catch (err) {
     console.error(err.response?.data || err)
     res.status(500).send('Error during authentication')
@@ -100,14 +129,17 @@ app.get('/logout', (req, res) => {
 
 // Route to get current user info
 app.get('/me', (req, res) => {
+  console.log('Session user:', req.session.user)
+  console.log('Session notInGuild:', req.session.notInGuild)
   if (req.session.user) {
     res.json({
       loggedIn: true,
       username: req.session.user.username,
-      id: req.session.user.id
+      id: req.session.user.id,
+      notInGuild: req.session.notInGuild || false
     })
   } else {
-    res.json({ loggedIn: false })
+    res.json({ loggedIn: false, notInGuild: false })
   }
 })
 
@@ -131,8 +163,8 @@ app.post('/update-point', isAuthenticated, (req, res) => {
 
   db.run(sql, [userId, latitude, longitude], function(err) {
     if (err) {
-      console.error('Erreur update point:', err)
-      return res.status(500).json({ error: 'Erreur base de données' })
+      console.error('Update point error:', err)
+      return res.status(500).json({ error: 'Database error' })
     }
     res.json({ success: true })
   })
@@ -151,6 +183,21 @@ app.get('/points', isAuthenticated, (req, res) => {
       res.json(rows)
     }
   )
+})
+
+// Route to delete user's point
+app.post('/delete-point', isAuthenticated, (req, res) => {
+  const userId = req.session.user.id
+
+  const sql = `UPDATE users SET latitude = NULL, longitude = NULL WHERE id = ?`
+
+  db.run(sql, [userId], function(err) {
+    if (err) {
+      console.error('Delete point error:', err)
+      return res.status(500).json({ error: 'Database error' })
+    }
+    res.json({ success: true })
+  })
 })
 
 // Start the server

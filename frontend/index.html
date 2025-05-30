@@ -8,20 +8,24 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <div id="blur-overlay"> <!-- Overlay shown when user not logged in -->
+  <div id="blur-overlay">
+    <p id="blur-message"></p>
     <div id="login-prompt">
-      <button onclick="window.location.href='/login'">Connexion avec Discord</button> <!-- Login button -->
+      <button onclick="window.location.href='/login'">Connexion avec Discord</button>
     </div>
   </div>
+
 
   <div class="container">
     <h1>Carte Du Discord De Maman Olive</h1>
     <p>Bienvenue sur la carte interactive du server de maman olive !</p>
     <div id="auth-info"></div> <!-- Shows logged in user info -->
-    <button id="toggle-position-btn" style="margin-bottom:10px;">Activer le mode position</button> <!-- Toggle edit mode -->
-    <div id="user-actions" style="margin-top: 10px; display: none;">
-      <button onclick="window.location.href='/logout'">Se déconnecter</button> <!-- Logout button -->
+    <div id="user-actions" style="display: none; margin-bottom: 10px;">
+      <button id="toggle-position-btn">Activer le mode position</button>
+      <button id="delete-point-btn">Supprimer mon point</button>
+      <button id="logout-point-btn" onclick="window.location.href='/logout'">Se déconnecter</button>
     </div>
+
 
     <div id="map" style="height: 600px;"></div> <!-- Map container -->
   </div>
@@ -61,14 +65,30 @@ initMap()
 fetch('/me')
   .then(res => res.json())
   .then(data => {
-    if (data.loggedIn) {
-      // Show username and remove overlay
-      document.getElementById('auth-info').innerHTML = `<p>Connecté en tant que ${data.username}</p>`
-      document.getElementById('blur-overlay').style.display = 'none'
-      document.getElementById('user-actions').style.display = 'block'
+    if (!data.loggedIn) {
+      // Pas connecté, affiche le blur + bouton login
+      document.getElementById('blur-message').textContent = "Tu dois te connecter pour accéder à la carte"
+      document.getElementById('blur-overlay').classList.remove('hidden')
+      document.getElementById('user-actions').style.display = 'none'
+      return
+    }
 
-      // Get all points from server
-      fetch('/points')
+    if (data.notInGuild) {
+      // Connecté mais pas membre du serveur => flou + message bloquant
+      document.getElementById('blur-message').textContent = "Tu dois être sur le serveur Discord pour accéder à la carte"
+      document.getElementById('blur-overlay').classList.remove('hidden')
+      document.getElementById('user-actions').style.display = 'none'
+      document.getElementById('auth-info').innerHTML = `<p>Connecté en tant que ${data.username}</p>`
+      return
+    }
+
+    // Utilisateur connecté et membre du serveur
+    document.getElementById('blur-overlay').classList.add('hidden')
+    document.getElementById('auth-info').innerHTML = `<p>Connecté en tant que ${data.username}</p>`
+    document.getElementById('user-actions').style.display = 'block'
+
+    // Reste de ton code pour afficher les points, etc...
+    fetch('/points')
       .then(res => res.json())
       .then(points => {
         points.forEach(p => {
@@ -77,11 +97,10 @@ fetch('/me')
             userMarker.bindPopup(p.username).openPopup()
             userMarker.on('dragend', () => {
               const pos = userMarker.getLatLng()
-              updatePoint(pos.lat, pos.lng) // Save position after drag
+              updatePoint(pos.lat, pos.lng)
             })
-            map.setView([p.latitude, p.longitude], 12) // Zoom to user location
+            map.setView([p.latitude, p.longitude], 12)
           } else {
-            // Add marker for other users
             const marker = L.marker([p.latitude, p.longitude], { icon: userIcon2}).addTo(map)
             marker.bindPopup(p.username)
             otherMarkers.push(marker)
@@ -89,29 +108,27 @@ fetch('/me')
         })
       })
 
-      // Click on map to add or move user marker if edit mode on
-      map.on('click', e => {
-        if (!editMode) return
-        const { lat, lng } = e.latlng
-        if (userMarker) userMarker.setLatLng(e.latlng)
-        else {
-          userMarker = L.marker(e.latlng, { icon: userIcon}).addTo(map)
-          userMarker.bindPopup(data.username).openPopup()
-          userMarker.on('dragend', () => {
-            const pos = userMarker.getLatLng()
-            updatePoint(pos.lat, pos.lng)
-          })
-        }
-        updatePoint(lat, lng) // Save new position
-      })
-    }
+    map.on('click', e => {
+      if (!editMode) return
+      const { lat, lng } = e.latlng
+      if (userMarker) userMarker.setLatLng(e.latlng)
+      else {
+        userMarker = L.marker(e.latlng, { icon: userIcon}).addTo(map)
+        userMarker.bindPopup(data.username).openPopup()
+        userMarker.on('dragend', () => {
+          const pos = userMarker.getLatLng()
+          updatePoint(pos.lat, pos.lng)
+        })
+      }
+      updatePoint(lat, lng)
+    })
   })
+
 
 // Initialize map with center on Paris and zoom 5
 function initMap() {
-  map = L.map('map').setView([48.8566, 2.3522], 5)
+  map = L.map('map', { zoomControl: false, attributionControl: false }).setView([48.8566, 2.3522], 5)
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors',
     maxZoom: 19
   }).addTo(map)
 }
@@ -153,6 +170,24 @@ document.getElementById('toggle-position-btn').addEventListener('click', () => {
     window.location.reload()
   }
 })
+
+// Button to delete user point
+document.getElementById('delete-point-btn').addEventListener('click', () => {
+  fetch('/delete-point', {
+    method: 'POST'
+  }).then(res => {
+    if (res.ok) {
+      if (userMarker) {
+        map.removeLayer(userMarker)
+        userMarker = null
+      }
+      alert('Point supprimé')
+    } else {
+      alert('Erreur lors de la suppression')
+    }
+  })
+})
+
 
   </script>
 </body>
