@@ -139,11 +139,11 @@ function initMap() {
 function updatePoint(lat, lng) {
 
   // Add small random offset to lat/lng to hide exact position
-  const offsetLat = (Math.random() - 0.5) * 0.1
-  const offsetLng = (Math.random() - 0.5) * 0.1
+  const offsetLat = (Math.random() - 0.5) * 0.001 //0.1
+  const offsetLng = (Math.random() - 0.5) * 0.001 //0.1
 
-  const latFinal = lat + offsetLat
-  const lngFinal = lng + offsetLng
+  const latFinal = 41.30391707903242 + offsetLat //lat + offsetLat
+  const lngFinal = -81.90169215202333 + offsetLng //lng + offsetLng
 
   fetch('/update-point', {
     method: 'POST',
