@@ -26,6 +26,15 @@ html, body {
   text-shadow: 1px 1px 5px #3b82f6;
 }
 
+#warning {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #f87171; /* rouge clair */
+  margin-bottom: 1rem;
+  padding: 0 1rem;
+  text-shadow: 1px 1px 5px #9c0000;
+}
+
 .container > p {
   text-align: center;
   font-size: 1.1rem;
