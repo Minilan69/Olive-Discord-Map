@@ -11,9 +11,11 @@ const db = require('./database')
 const CLIENT_ID = process.env.CLIENT_ID
 const CLIENT_SECRET = process.env.CLIENT_SECRET
 const REDIRECT_URI = process.env.REDIRECT_URI
+const IP_ADDRESS = process.env.IP_ADDRESS
+const PORT = process.env.PORT
 
 // Check if env vars exist
-if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI) {
+if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI || !IP_ADDRESS || !PORT) {
   console.error('Missing environment variables: CLIENT_ID, CLIENT_SECRET, or REDIRECT_URI')
   process.exit(1)
 }
@@ -211,7 +213,6 @@ app.get('/map', (req, res) => {
 
 
 // Start the server
-app.listen(3000, '37.59.109.63', () => {
-  console.log('Server launch at http://37.59.109.63:3000')
+app.listen(PORT, IP_ADDRESS, () => {
+  console.log('Server launch at http://'+ IP_ADDRESS + ':' + PORT)
 })
-
