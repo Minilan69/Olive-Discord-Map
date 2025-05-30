@@ -1,55 +1,159 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Carte Discord</title>
-  <link rel="stylesheet" href="styles.css">
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-  <style>
-    #map {
-      height: 400px;
-      width: 100%;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
+  <div id="blur-overlay"> <!-- Overlay shown when user not logged in -->
+    <div id="login-prompt">
+      <button onclick="window.location.href='/login'">Connexion avec Discord</button> <!-- Login button -->
+    </div>
+  </div>
+
   <div class="container">
     <h1>Carte Du Discord De Maman Olive</h1>
     <p>Bienvenue sur la carte interactive du server de maman olive !</p>
-    <div id="auth-button"></div>
-    <button onclick="window.location.href='/logout'">Se déconnecter</button>
+    <div id="auth-info"></div> <!-- Shows logged in user info -->
+    <button id="toggle-position-btn" style="margin-bottom:10px;">Activer le mode position</button> <!-- Toggle edit mode -->
+    <div id="user-actions" style="margin-top: 10px; display: none;">
+      <button onclick="window.location.href='/logout'">Se déconnecter</button> <!-- Logout button -->
     </div>
-  <div id="map"></div>
+
+    <div id="map" style="height: 600px;"></div> <!-- Map container -->
+  </div>
 
   <footer class="bg-gray-800 text-center text-sm p-2">
-    © 2025 Minilan/Okiles - <a href="https://github.com/Minilan69/Olive-Discord-Map"> Projet Open Source </a>
+    © 2025 Minilan/Okiles - <a href="https://github.com/Minilan69/Olive-Discord-Map">Projet Open Source </a>
   </footer>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    fetch('/me')
-    .then(res => res.json())
-    .then(data => {
-        const container = document.getElementById('auth-button')
-        if (data.loggedIn) {
-        container.innerHTML = `<button disabled>Connecté en tant que ${data.username}</button>`
-        } else {
-        container.innerHTML = `<button onclick="window.location.href='/login'">Connexion avec discord</button>`
-        }
-    })
-</script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    var map = L.map('map').setView([48.8566, 2.3522], 13)
+let map
+let editMode = false
+let userMarker = null
+let otherMarkers = []
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-    }).addTo(map)
+// Icons for user markers with different colors
+const userIcon = L.icon({
+  iconUrl: '/assets/pin-red.png',
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -30],
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  shadowSize: [40, 40]
+})
+const userIcon2 = L.icon({
+  iconUrl: '/assets/pin-black.png',
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -30],
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  shadowSize: [40, 40]
+})
+
+initMap()
+
+// Check if user logged in
+fetch('/me')
+  .then(res => res.json())
+  .then(data => {
+    if (data.loggedIn) {
+      // Show username and remove overlay
+      document.getElementById('auth-info').innerHTML = `<p>Connecté en tant que ${data.username}</p>`
+      document.getElementById('blur-overlay').style.display = 'none'
+      document.getElementById('user-actions').style.display = 'block'
+
+      // Get all points from server
+      fetch('/points')
+      .then(res => res.json())
+      .then(points => {
+        points.forEach(p => {
+          if (p.id === data.id) {
+            userMarker = L.marker([p.latitude, p.longitude], { icon: userIcon}).addTo(map)
+            userMarker.bindPopup(p.username).openPopup()
+            userMarker.on('dragend', () => {
+              const pos = userMarker.getLatLng()
+              updatePoint(pos.lat, pos.lng) // Save position after drag
+            })
+            map.setView([p.latitude, p.longitude], 12) // Zoom to user location
+          } else {
+            // Add marker for other users
+            const marker = L.marker([p.latitude, p.longitude], { icon: userIcon2}).addTo(map)
+            marker.bindPopup(p.username)
+            otherMarkers.push(marker)
+          }
+        })
+      })
+
+      // Click on map to add or move user marker if edit mode on
+      map.on('click', e => {
+        if (!editMode) return
+        const { lat, lng } = e.latlng
+        if (userMarker) userMarker.setLatLng(e.latlng)
+        else {
+          userMarker = L.marker(e.latlng, { icon: userIcon}).addTo(map)
+          userMarker.bindPopup(data.username).openPopup()
+          userMarker.on('dragend', () => {
+            const pos = userMarker.getLatLng()
+            updatePoint(pos.lat, pos.lng)
+          })
+        }
+        updatePoint(lat, lng) // Save new position
+      })
+    }
+  })
+
+// Initialize map with center on Paris and zoom 5
+function initMap() {
+  map = L.map('map').setView([48.8566, 2.3522], 5)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19
+  }).addTo(map)
+}
+
+// Send new position to backend with a small random offset
+function updatePoint(lat, lng) {
+
+  // Add small random offset to lat/lng to hide exact position
+  const offsetLat = (Math.random() - 0.5) * 0.1
+  const offsetLng = (Math.random() - 0.5) * 0.1
+
+  const latFinal = lat + offsetLat
+  const lngFinal = lng + offsetLng
+
+  fetch('/update-point', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ latitude: latFinal, longitude: lngFinal })
+  })
+  .then(res => {
+    if (!res.ok) console.error('Erreur mise à jour position')
+  })
+}
+
+// Button to toggle edit mode
+document.getElementById('toggle-position-btn').addEventListener('click', () => {
+  editMode = !editMode
+
+  // Change button text depending on mode
+  document.getElementById('toggle-position-btn').textContent = editMode
+    ? 'Désactiver le mode position'
+    : 'Activer le mode position'
+
+  if (editMode) {
+    // Remove other users markers in edit mode
+    otherMarkers.forEach(marker => map.removeLayer(marker))
+  } else {
+    // Reload page to refresh markers when edit mode off
+    window.location.reload()
+  }
+})
+
   </script>
 </body>
 </html>

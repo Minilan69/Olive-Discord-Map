@@ -2,22 +2,34 @@ const sqlite3 = require('sqlite3').verbose()
 const path = require('path')
 
 const dbPath = path.resolve(__dirname, 'olive-map.db')
+
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
-    console.error('Error during DB connection', err)
+    console.error('DB connection error', err)
   } else {
-    console.log('DB connected successfully')
+    console.log('DB connected')
   }
 })
 
-// Create the users table if it doesn't exist
 db.serialize(() => {
+  // Create the users table if it doesn't exist
   db.run(`CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    username TEXT,
-    latitude REAL,
-    longitude REAL
-  )`)
+    id TEXT PRIMARY KEY,   // User ID
+    username TEXT,         // Username
+    latitude REAL,         // Latitude
+    longitude REAL         // Longitude
+  )`, (err) => {
+    if (err) {
+      console.error('Table creation error', err)
+    } else {
+      // Show users in DB at startup
+      db.all("SELECT * FROM users", (err, rows) => {
+        if (err) console.error('Read users error', err)
+        else console.log('Users at startup:', rows)
+      })
+    }
+  })
 })
 
+// Export the database
 module.exports = db
