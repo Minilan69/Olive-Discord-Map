@@ -37,14 +37,15 @@ html, body {
 /* USER ACTIONS BUTTONS */
 #user-actions {
   display: flex;
-  justify-content: center;
-  gap: 15px;
-  flex-wrap: wrap;
-  margin-bottom: 1.5rem;
+  justify-content: space-between; /* Espace max entre les boutons */
+  align-items: center;
   padding: 0 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: nowrap; /* évite que ça se mette en colonne */
 }
 
 #user-actions button {
+  flex: 0 0 auto; /* taille auto selon contenu */
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   border: none;
   border-radius: 12px;
@@ -62,6 +63,9 @@ html, body {
   background: linear-gradient(135deg, #2563eb, #1e40af);
   box-shadow: 0 6px 18px rgb(30 64 175 / 0.8);
 }
+
+
+
 
 /* MAP FULL SIZE */
 #map {
