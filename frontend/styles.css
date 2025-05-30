@@ -35,6 +35,7 @@ html, body {
 }
 
 /* USER ACTIONS BUTTONS */
+
 #user-actions {
   display: flex;
   justify-content: flex-start;
@@ -45,6 +46,9 @@ html, body {
   gap: 10px;
 }
 
+.spacer {
+  flex-grow: 1;
+}
 
 #user-actions button {
   flex: 0 0 auto;
@@ -53,12 +57,14 @@ html, body {
   border-radius: 12px;
   color: white;
   font-weight: 600;
+   max-width: 220px;
   padding: 12px 24px;
   font-size: 1rem;
   cursor: pointer;
   box-shadow: 0 4px 12px rgb(59 130 246 / 0.6);
   transition: background 0.3s ease, box-shadow 0.3s ease;
   user-select: none;
+  white-space: nowrap;
 }
 
 #user-actions button:hover {
@@ -69,7 +75,7 @@ html, body {
 /* MAP FULL SIZE */
 #map {
   flex-grow: 1;
-  width: 100%;
+  width: 100% - 16px;
   border-radius: 16px;
   box-shadow: 0 12px 30px rgba(30, 64, 175, 0.4);
   margin: 0 1rem 1.5rem;
@@ -139,6 +145,21 @@ footer {
   background: linear-gradient(45deg, #2563eb, #1e40af);
   box-shadow: 0 10px 30px rgba(30, 64, 175, 0.9);
 }
+
+.discord-widget {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.discord-widget iframe {
+  max-width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
+
+
 
 /* Responsive */
 @media (max-width: 600px) {
