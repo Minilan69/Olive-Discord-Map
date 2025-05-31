@@ -165,13 +165,13 @@ footer {
 /* DISCORD */
 .discord-widget {
   display: flex;
-  justify-content: center;
+  justify-content: right;
   align-items: center;
   padding: 1.5rem;
 }
 
 .discord-widget iframe {
-  width: 100%;
+  width: 30%;
   border-radius: 0.625rem;
   box-shadow: 0 0 0.9375rem rgba(0,0,0,0.3);
 }
