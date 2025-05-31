@@ -1,51 +1,119 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Site Discord Maman Olive</title>
   <link rel="icon" href="assets/site-icon.png" type="image/png">
   <link rel="stylesheet" href="styles.css">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Site Officiel Du Discord De Maman Olive</h1>
-    <p>Bienvenue sur le site du discord de maman olive !</p>
-    <h1 id="warning">( Site En Creation )</h1>
-    <div id="user-actions" style="margin-bottom: 10px;">
-      <button id="homelink" onclick="window.location.href='/'">Accueil</button>
-      <button id="maplink" onclick="window.location.href='/map'">Carte</button>
-      <div class="spacer"></div>
-      <button id="login-logout-point-btn">Connexion</button>
+  <header class="main-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="header-title">
+          <img src="assets/site-icon.png" alt="Icon du site" id="header-logo">
+          <h1>Site Officiel Du Discord De Maman Olive</h1>
+        </div>
+        <p id="warning">
+          <i data-lucide="construction" class="warning-icon"></i>
+          ( Site En Creation )
+        </p>
+      </div>
+      <div class="header-right">
+        <button id="homelink" onclick="window.location.href='/'">
+          <i data-lucide="home" class="btn-icon"></i>
+          Accueil
+        </button>
+        <button id="maplink" onclick="window.location.href='/map'">
+          <i data-lucide="map" class="btn-icon"></i>
+          Carte
+        </button>
+        <button id="login-logout-point-btn">
+          <i data-lucide="log-in" class="btn-icon"></i>
+          Connexion
+        </button>
+      </div>
     </div>
-    <div class="discord-widget">
-        <iframe src="https://discord.com/widget?id=1376474773101744148&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+  </header>
+
+  <div class="container">
+    <div class="welcome-section">
+      <div class="welcome-content">
+        <i data-lucide="heart" class="welcome-icon"></i>
+        <p>Bienvenue sur le site du discord de maman olive !</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card clickable-card" onclick="window.location.href='/map'">
+          <i data-lucide="map-pin" class="feature-icon"></i>
+          <h3>Carte Interactive</h3>
+          <p>Découvrez où se trouvent les membres de la communauté</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="discord-section">
+      <div class="discord-header">
+        <i data-lucide="headphones" class="discord-icon"></i>
+        <h2>Serveur Discord</h2>
+      </div>
+
+      <div class="discord-widget">
+        <iframe src="https://discord.com/widget?id=1376474773101744148&theme=dark" width="350" height="500"
+          allowtransparency="true" frameborder="0"
+          sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+      </div>
+
+      <div class="discord-actions">
+        <button class="join-discord-btn" onclick="window.open('https://discord.gg/maman', '_blank')">
+          <i data-lucide="external-link" class="btn-icon"></i>
+          Rejoindre le serveur
+        </button>
+      </div>
     </div>
   </div>
 
   <footer class="bg-gray-800 text-center text-sm p-2">
-    © 2025 Minilan/Okiles - <a href="https://github.com/Minilan69/Olive-Discord-Map">Projet Open Source</a>
+    <div class="footer-content">
+      <i data-lucide="code" class="footer-icon"></i>
+      © 2025 Minilan/Okiles -
+      <a href="https://github.com/Minilan69/Olive-Discord-Map">
+        <i data-lucide="github" class="footer-link-icon"></i>
+        Projet Open Source
+      </a>
+    </div>
   </footer>
 
+  <script src="auth.js"></script>
   <script>
-    fetch('/me')
-      .then(res => res.json())
-      .then(data => {
-        const userActions = document.getElementById('user-actions')
-        const loginBtn = document.getElementById('login-logout-point-btn')
+    // Initialiser les icônes Lucide
+    document.addEventListener('DOMContentLoaded', function () {
+      lucide.createIcons();
+
+      // Mettre à jour les icônes lors des changements d'authentification
+      const originalUpdateAuthUI = AuthManager.prototype.updateAuthUI;
+      AuthManager.prototype.updateAuthUI = function (data) {
+        originalUpdateAuthUI.call(this, data);
+
+        // Mettre à jour l'icône du bouton de connexion/déconnexion
+        const loginBtn = document.getElementById("login-logout-point-btn");
+        const icon = loginBtn.querySelector('.btn-icon');
+
         if (data.loggedIn) {
-          loginBtn.textContent = 'Déconnexion de ' + data.username
-          loginBtn.onclick = () => {
-            window.location.href = '/logout?redirect=' + encodeURIComponent(window.location.pathname)
-          }
+          icon.setAttribute('data-lucide', 'log-out');
         } else {
-          loginBtn.textContent = 'Connexion avec Discord'
-          loginBtn.onclick = () => {
-            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname)
-          }
+          icon.setAttribute('data-lucide', 'log-in');
         }
-      })
+
+        lucide.createIcons();
+      };
+    });
   </script>
 </body>
+
 </html>

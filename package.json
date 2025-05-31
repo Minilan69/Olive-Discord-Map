@@ -22,6 +22,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
+    "lucide-react": "^0.511.0",
     "sqlite3": "^5.1.7"
   }
 }
