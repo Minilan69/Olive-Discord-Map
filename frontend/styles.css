@@ -303,8 +303,8 @@ html, body {
 
 /* BOUTONS DE CONNEXION/DÉCONNEXION */
 #login-logout-point-btn, #logout-point-btn {
-  background: linear-gradient(135deg, #10b981, #059669) !important;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+  background: linear-gradient(135deg, #10b981, #059669) ;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) ;
   border: 1px solid rgba(16, 185, 129, 0.3);
   position: relative;
   overflow: hidden;

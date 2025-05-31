@@ -22,12 +22,12 @@ class AuthManager {
         if (!loginBtn) return;
 
         if (data.loggedIn) {
-            loginBtn.innerHTML = `<i data-lucide="log-out" class="btn-icon"></i> Se déconnecter`;
+            loginBtn.innerHTML = `<i data-lucide="log-out" class="btn-icon"></i> Déconnexion`;
             loginBtn.onclick = () => {
                 this.logout();
             };
         } else {
-            loginBtn.innerHTML = `<i data-lucide="log-in" class="btn-icon"></i> Connexion avec Discord`;
+            loginBtn.innerHTML = `<i data-lucide="log-in" class="btn-icon"></i> Connexion`;
             loginBtn.onclick = () => {
                 this.login();
             };

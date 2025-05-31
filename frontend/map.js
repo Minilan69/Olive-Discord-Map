@@ -40,7 +40,7 @@ class MapManager {
         }).setView([48.8566, 2.3522], 5);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
+            maxZoom: 10,
             minZoom: 3
         }).addTo(this.map);
 
@@ -98,9 +98,10 @@ class MapManager {
 
     updateAuthenticatedUI(data) {
         const logoutBtn = document.getElementById('logout-point-btn');
-        logoutBtn.innerHTML = `<i data-lucide="log-out" class="btn-icon"></i> Se déconnecter`;
-        logoutBtn.style.display = 'block';
+        logoutBtn.innerHTML = `<i data-lucide="log-out" class="btn-icon"></i> Déconnexion`;
+        lucide.createIcons();
     }
+
 
     async loadPoints() {
         try {
@@ -169,11 +170,11 @@ class MapManager {
 
     async updatePoint(lat, lng) {
         // Ajouter un petit décalage aléatoire pour masquer la position exacte
-        const offsetLat = (Math.random() - 0.5) * 0.001;
-        const offsetLng = (Math.random() - 0.5) * 0.001;
+        const offsetLat = (Math.random() - 0.5) * 0.1;
+        const offsetLng = (Math.random() - 0.5) * 0.1;
 
-        const latFinal = 41.30391707903242 + offsetLat;
-        const lngFinal = -81.90169215202333 + offsetLng;
+        const latFinal = lat + offsetLat;
+        const lngFinal = lng + offsetLng;
 
         try {
             const response = await fetch('/update-point', {
@@ -205,6 +206,10 @@ class MapManager {
             // Supprimer les marqueurs des autres utilisateurs en mode édition
             this.otherMarkers.forEach(marker => this.map.removeLayer(marker));
             toggleBtn.classList.add('active');
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 15,
+            minZoom: 3
+            }).addTo(this.map);
         } else {
             // Recharger la page pour rafraîchir les marqueurs
             window.location.reload();
