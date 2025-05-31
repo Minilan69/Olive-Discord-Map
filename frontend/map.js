@@ -123,8 +123,7 @@ class MapManager {
 
     createUserMarker(point) {
         this.userMarker = L.marker([point.latitude, point.longitude], {
-            icon: this.userIcon,
-            draggable: true
+            icon: this.userIcon
         }).addTo(this.map);
 
         this.userMarker.bindPopup(point.username).openPopup();
@@ -154,8 +153,7 @@ class MapManager {
             this.userMarker.setLatLng(e.latlng);
         } else {
             this.userMarker = L.marker(e.latlng, {
-                icon: this.userIcon,
-                draggable: true
+                icon: this.userIcon
             }).addTo(this.map);
 
             this.userMarker.bindPopup(this.currentUser.username).openPopup();
