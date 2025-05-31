@@ -39,9 +39,15 @@ class MapManager {
             attributionControl: false
         }).setView([48.8566, 2.3522], 5);
 
+        this.map.setMaxBounds([
+            [-85, -180],
+            [85, 180]
+        ])
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            noWrap: true,
             maxZoom: 10,
-            minZoom: 3
+            minZoom: 5
         }).addTo(this.map);
 
         // Ajouter le contrôle de zoom en haut à droite
@@ -205,8 +211,9 @@ class MapManager {
             this.otherMarkers.forEach(marker => this.map.removeLayer(marker));
             toggleBtn.classList.add('active');
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            noWrap: true,
             maxZoom: 15,
-            minZoom: 3
+            minZoom: 5
             }).addTo(this.map);
         } else {
             // Recharger la page pour rafraîchir les marqueurs
