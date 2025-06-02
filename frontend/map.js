@@ -47,7 +47,7 @@ class MapManager {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             noWrap: true,
             maxZoom: 10,
-            minZoom: 5
+            minZoom: 4
         }).addTo(this.map);
 
         // Ajouter le contrôle de zoom en haut à droite
@@ -212,18 +212,10 @@ class MapManager {
             // Supprimer les marqueurs des autres utilisateurs en mode édition
             this.otherMarkers.forEach(marker => this.map.removeLayer(marker));
             toggleBtn.classList.add('active');
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            noWrap: true,
-            maxZoom: 15,
-            minZoom: 5
-            }).addTo(this.map);
+            this.map.setMaxZoom(15);
         } else {
             toggleBtn.classList.remove('active');
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            noWrap: true,
-            maxZoom: 10,
-            minZoom: 5
-        }).addTo(this.map);
+            this.map.setMaxZoom(10);
             // Supprimer tous les anciens marqueurs
             this.otherMarkers.forEach(marker => this.map.removeLayer(marker));
             this.otherMarkers = [];
