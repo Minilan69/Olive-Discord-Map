@@ -13,7 +13,7 @@ html, body {
   color: #f1f5f9;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;      /* Ajoute ceci si tu veux éviter le scroll horizontal */
 }
 
 /* SYSTÈME D'ICÔNES UNIFIÉ */
