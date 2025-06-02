@@ -3,6 +3,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 const express = require('express')
 const axios = require('axios')
 const session = require('express-session')
+const SQLiteStore = require('connect-sqlite3')(session)
 const app = express()
 const db = require('./database')
 
@@ -20,11 +21,21 @@ if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI || !PORT) {
 
 // Use session to handle user infos
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'ultra_secret_key', // secret key for sessions
+  store: new SQLiteStore({
+    db: 'sessions.sqlite', // Le fichier sera créé dans le dossier backend
+    dir: './db',            // Tu peux choisir un dossier, ici "db"
+  }),
+  secret: process.env.SESSION_SECRET || 'ultra_secret_key',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // Not using HTTPS here, so secure false
+  cookie: {
+    secure: false, // mets true si tu passes en HTTPS
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 1000 * 60 * 60 * 24 * 365 // 1 an
+  }
 }))
+
 
 app.use(express.static(path.join(__dirname, '../frontend')))
 app.use('/assets', express.static(path.join(__dirname, 'assets')))
@@ -208,6 +219,22 @@ app.post('/delete-point', isAuthenticated, (req, res) => {
 app.get('/map', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend', 'map.html'))
 })
+
+// Route to find a user by ID or username
+app.post('/find-user', isAuthenticated, (req, res) => {
+  const { input } = req.body;
+
+  db.get(
+      `SELECT latitude, longitude FROM users WHERE id = ? OR username = ?`,
+      [input, input],
+      (err, row) => {
+            if (err) return res.status(500).json({ error: 'DB error' });
+            if (!row) return res.status(404).json({ error: 'Not found' });
+
+            res.json(row);
+        }
+    );
+});
 
 
 app.listen(PORT, () => {

@@ -13,7 +13,7 @@ class UIHandlers {
         // Attendre que le DOM soit chargé
         document.addEventListener('DOMContentLoaded', () => {
             this.setupMapControls();
-            this.setupCitySearch();
+            this.setupMemberSearch();
         });
     }
 
@@ -39,39 +39,37 @@ class UIHandlers {
         }
     }
 
-    setupCitySearch() {
-        // Bouton de recherche de ville
-        const searchBtn = document.getElementById('search-city-btn');
-        const cityInput = document.getElementById('city-input');
+    setupMemberSearch() {
+        const searchBtn = document.getElementById('search-member-btn');
+        const memberInput = document.getElementById('member-input');
 
-        if (searchBtn && cityInput) {
+        if (searchBtn && memberInput) {
             searchBtn.addEventListener('click', () => {
-                const city = cityInput.value.trim();
-                if (window.mapManager && city) {
-                    window.mapManager.searchCity(city);
+                const member = memberInput.value.trim();
+                if (window.mapManager && member) {
+                    window.mapManager.searchMember(member).catch(console.error);
                 }
             });
 
-            // Permettre la recherche avec la touche Entrée
-            cityInput.addEventListener('keypress', (e) => {
+            memberInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    const city = cityInput.value.trim();
-                    if (window.mapManager && city) {
-                        window.mapManager.searchCity(city);
+                    const member = memberInput.value.trim(); // correction ici
+                    if (window.mapManager && member) {
+                        window.mapManager.searchMember(member).catch(console.error); // correction ici
                     }
                 }
             });
 
-            // Nettoyer le champ après la recherche
-            cityInput.addEventListener('keyup', (e) => {
+            memberInput.addEventListener('keyup', (e) => {
                 if (e.key === 'Enter') {
                     setTimeout(() => {
-                        cityInput.value = '';
+                        memberInput.value = '';
                     }, 1000);
                 }
             });
         }
     }
+
 
     // Méthodes utilitaires pour l'UI
     showNotification(message, type = 'info') {

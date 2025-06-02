@@ -261,25 +261,31 @@ class MapManager {
         }
     }
 
-    async searchCity(cityName) {
-        if (!cityName.trim()) return;
+    async searchMember(memberInput) {
+        console.log('Recherche de l’utilisateur:', memberInput);
+        if (!memberInput.trim()) return;
+        console.log('Recherche de l’utilisateur 2 :', memberInput);
 
         try {
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}&limit=1`
-            );
-            const data = await response.json();
+            const response = await fetch('/find-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ input: memberInput })
+        });
 
-            if (data.length > 0) {
-                const lat = parseFloat(data[0].lat);
-                const lon = parseFloat(data[0].lon);
-                this.map.setView([lat, lon], 12);
+            if (!response.ok) {
+                console.error('Erreur lors de la recherche de l’utilisateur');
+                alert('Utilisateur non trouvé')
+                return;
             } else {
-                alert('Ville non trouvée');
+                const user = await response.json();
+                console.log('Utilisateur trouvé:', user);
+                this.map.setView([user.latitude, user.longitude], 10);
+                return user
             }
         } catch (error) {
-            console.error('Erreur de géocodage:', error);
-            alert('Erreur lors de la recherche');
+            console.error('Erreur de recherche dans la base de données:', error)
+            alert('Erreur lors de la recherche')
         }
     }
 }

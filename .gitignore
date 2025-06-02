@@ -136,4 +136,4 @@ dist
 .pnp.*
 
 # database file
-backend/olive-map.db
+backend/db/*
