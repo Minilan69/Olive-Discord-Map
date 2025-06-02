@@ -202,9 +202,11 @@ class MapManager {
         this.editMode = !this.editMode;
 
         const toggleBtn = document.getElementById('toggle-position-btn');
-        toggleBtn.textContent = this.editMode
-            ? 'Désactiver le mode position'
-            : 'Activer le mode position';
+        toggleBtn.innerHTML = this.editMode
+            ? '<i data-lucide="crosshair" class="btn-icon"></i> Confirmer le point'
+            : '<i data-lucide="crosshair" class="btn-icon"></i> Placer mon point';
+        lucide.createIcons();
+
 
         if (this.editMode) {
             // Supprimer les marqueurs des autres utilisateurs en mode édition
@@ -216,8 +218,19 @@ class MapManager {
             minZoom: 5
             }).addTo(this.map);
         } else {
-            // Recharger la page pour rafraîchir les marqueurs
-            window.location.reload();
+            // Supprimer tous les anciens marqueurs
+            this.otherMarkers.forEach(marker => this.map.removeLayer(marker));
+            this.otherMarkers = [];
+
+            // Supprimer le marqueur utilisateur s’il existe
+            if (this.userMarker) {
+                this.map.removeLayer(this.userMarker);
+                this.userMarker = null;
+            }
+
+            // Recharger tous les points depuis l'API
+            this.loadPoints();
+
         }
     }
 
