@@ -218,6 +218,12 @@ class MapManager {
             minZoom: 5
             }).addTo(this.map);
         } else {
+            toggleBtn.classList.remove('active');
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            noWrap: true,
+            maxZoom: 10,
+            minZoom: 5
+        }).addTo(this.map);
             // Supprimer tous les anciens marqueurs
             this.otherMarkers.forEach(marker => this.map.removeLayer(marker));
             this.otherMarkers = [];

@@ -302,10 +302,26 @@ html, body {
 }
 
 /* BOUTONS DE CONNEXION/DÉCONNEXION */
-#login-logout-point-btn, #logout-point-btn {
+#login-logout-point-btn {
   background: linear-gradient(135deg, #10b981, #059669) ;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) ;
   border: 1px solid rgba(16, 185, 129, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+#logout-point-btn {
+  background: linear-gradient(135deg, #dc2626, #b91c1c) ;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4) ;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+#login-logout-point-btn.active, #logout-point-btn {
+  background: linear-gradient(135deg, #b91010, #960505) ;
+  box-shadow: 0 4px 12px rgba(185, 16, 16, 0.4) ;
+  border: 1px solid rgba(185, 16, 16, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -325,9 +341,15 @@ html, body {
   left: 100%;
 }
 
-#login-logout-point-btn:hover, #logout-point-btn:hover {
+#login-logout-point-btn:hover {
   background: linear-gradient(135deg, #059669, #047857) !important;
   box-shadow: 0 6px 20px rgba(5, 150, 105, 0.6) !important;
+  transform: translateY(-2px);
+}
+
+#login-logout-point-btn.active:hover, #logout-point-btn:hover {
+  background: linear-gradient(135deg, #960505, #780404) !important;
+  box-shadow: 0 6px 20px rgba(150, 5, 5, 0.6) !important;
   transform: translateY(-2px);
 }
 

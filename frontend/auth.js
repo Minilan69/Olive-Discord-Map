@@ -22,11 +22,13 @@ class AuthManager {
         if (!loginBtn) return;
 
         if (data.loggedIn) {
+            loginBtn.classList.add('active');
             loginBtn.innerHTML = `<i data-lucide="log-out" class="btn-icon"></i> Déconnexion`;
             loginBtn.onclick = () => {
                 this.logout();
             };
         } else {
+            loginBtn.classList.remove('active');
             loginBtn.innerHTML = `<i data-lucide="log-in" class="btn-icon"></i> Connexion`;
             loginBtn.onclick = () => {
                 this.login();
